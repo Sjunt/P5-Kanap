@@ -1,4 +1,5 @@
 //Requete de l’API pour lui demander l’ensemble des produits
+//la reponse transforme les produits en json et on la nomme product
 
 fetch('http://localhost:3000/api/products')
     .then(function(response) {
@@ -13,12 +14,12 @@ fetch('http://localhost:3000/api/products')
 
 
 //Insérer chaque élément de chaque produit dans la page d’accueil (dans le DOM).
-
+//Tout en spécifiant l'ID !!!!!
 function addProducts(e) {
     return `
-        <a href="./product.html">
+        <a href="./product.html?id=${e._id}">
             <article>
-              <img src="${e.imageUrl}" alt="${e.altTxt}"">
+              <img src="${e.imageUrl}" alt="${e.altTxt}">
               <h3 class="productName">${e.name}</h3>
               <p class="productDescription">${e.description}</p>
               <p class="productPrice">${e.price}€</p>
