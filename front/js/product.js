@@ -1,97 +1,93 @@
 //Récupérer les paramètres de l'URL
 //Faisant le lien entre un produit de la page d'acceuil et la page Produit
 //Récupérant ainsi l'id du produit a afficher
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-const id = urlParams.get("id");
+let params = new URL(window.location.href).searchParams;
+let id = params.get('id');
 
+//Création de toutes les variables :
+const image = document.getElementsByClassName('item__img');
+//let imageUrl = "";
+//let imageAlt = "";
+const title = document.getElementById('title');
+const price = document.getElementById('price');
+const description = document.getElementById('description');
+const colors = document.getElementById('colors');
+const selectQuantity = document.getElementById('quantity');
+const selectColors = document.querySelector("#colors");
+selectColors.textContent = colors;
 
-
-//console.log({ id })
-
-//Requete de l’API pour lui demander l’ensemble des informations pour un ID qui aura été récupéré depuis la page d'acceuil
+//Requete de l’API pour lui demander l’ensemble des informations pour un ID qui aura été récupéré
+//Ajout des données dans les variables
 fetch(`http://localhost:3000/api/products/${id}`)
-    .then ((response) => response.json())
-    .then ((data) => createCard(data))
- 
-
-//Fonction global qui sera toujours reprise dans le fetch
-//Génère toutes les constantes pour la création de la card page produit
-function createCard(kanap){
-    //console.log(kanap)
-    const {imageUrl, altTxt, colors, name, price, description} = kanap
-    addImage(imageUrl, altTxt)
-    imgUrl = imageUrl
-    altText = altTxt
-    articleName = name
-    addName(name)
-    addPrice(price)
-    itemPrice = price
-    addDescription(description)
-    addColors(colors)
-}
-
-//Génération de toutes les petites fonctions qui rempliront la card produit
-function addImage(imageUrl, altTxt){
-    const imgItem = document.createElement("img");
-    imgItem.src = imageUrl;
-    imgItem.alt = altTxt;
-    const parent = document.querySelector(".item__img")
-    parent.appendChild(imgItem);
-}
-
-function addName(name){
-    const h1 = document.querySelector("#title")
-    h1.textContent = name
-}
-
-function addPrice(price){
-    const span = document.querySelector("#price")
-    span.textContent = price
-}
-
-function addDescription(description){
-    const p = document.querySelector("#description")
-    p.textContent = description
-}
-
-function addColors(colors){
-    const select = document.querySelector("#colors")
-    select.textContent = colors
-    //console.log(colors)
-    colors.forEach((color) => {
-        const option = document.createElement("option")
-        option.value = color
-        option.textContent = color
-        select.appendChild(option)
-        //console.log(option)
-    })
-}
-
-
-//Ajout des éléments séléctionnés dans la page produit vers le localStorage
-//LocalStorage stock l'id la couleur l'image le prix et la quantité / Qte ne doit pas être égal a 0
-//Redirection après l'ajout au panier vers la page panier / Si erreur alors pas de redirection
-//A refactorer 
-
-const button = document.querySelector("#addToCart")
-button.addEventListener("click", (e) => {
-    const color = document.querySelector("#colors").value
-    const quantity = document.querySelector("#quantity").value
-    if(quantity == 0){
-        alert("Please select quantity")
-        return
-    }
-
+  .then(res => res.json())
+  .then(data => {
+    image[0].innerHTML = `<img src="${data.imageUrl}" alt="${data.altTxt}">`;
+    //imageUrl = data.imageUrl;
+    //imageAlt = data.altTxt;
+    title.innerHTML = `<h1>${data.name}</h1>`;
+    price.innerText = `${data.price}`;
+    description.innerText = `${data.description}`;
+      
+// Implémentation du choix des couleurs
+    for (let i = 0; i < data.colors.length; i++) {
+        let color = document.createElement("option");
+        color.setAttribute("value", data.colors[i]);
+        color.innerHTML = data.colors[i];
+        colors.appendChild(color);
+      }
+  })
+  
+  
+//Configuration eventlistner au click
+//Générant uniquement l'id la couleur et la quantité
+  const addToCart = document.getElementById('addToCart');
+  addToCart.addEventListener('click', (e) => {
+    e.preventDefault();
     const data = {
-        id: id,
-        name : articleName,
-        color: color,
-        quantity: quantity,
-        price: itemPrice,
-        altTxt: altText,
-        imageUrl : imgUrl
+      id: id,
+      color: selectColors.value,
+      quantity: selectQuantity.value,
+    };
+    
+// Quantité ne doit pas être égal a 0 sinon message d'erreur
+    if (selectQuantity.value == 0) {
+      return alert('Veuillez selectionner une quantité')
     }
-    localStorage.setItem(id, JSON.stringify(data))
+    
+// Insertion des donnés dans le localStorage (parse converti les donnés en objet)
+    let ItemInLocalStorage =  JSON.parse(localStorage.getItem('key'));
+    
+    const addProductLocalStorage = () => {
+        ItemInLocalStorage.push(data);
+        localStorage.setItem('key', JSON.stringify(ItemInLocalStorage));
+    }
+    
+//Pour vérifier et arrêter
+    let addCheck = false;
+      
+//Si il y a déjà des canapés présent dans le localStorage => 
+//Vérification que sa ne fasse pas doublon par rapport a la couleur
+    if (ItemInLocalStorage) {
+        ItemInLocalStorage.forEach (function (product, key) {
+        if (product.id == id && product.color == selectColors.value) {
+            ItemInLocalStorage[key].quantity = parseInt(product.quantity) + parseInt(selectQuantity.value);
+            localStorage.setItem('key', JSON.stringify(ItemInLocalStorage));
+            addCheck = true;      
+        }
+      });
+      
+//Opérateur logique NON (Cet opérateur renvoie false si son opérande peut être converti en true ; sinon il renvoie true.)
+        if (!addCheck) {
+            addProductLocalStorage();
+        }   
+    }
+    
+//Si il n'y a aucun canapé présent dans le localStorage => addProduct
+    else {
+        ItemInLocalStorage = [];
+        addProductLocalStorage();
+    }
+
+//Redirection vers le panier
     window.location.href = "cart.html"
-})
+  });
