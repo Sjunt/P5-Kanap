@@ -122,7 +122,7 @@ async function totalPriceCart(){
 }
 //Affichage du prix total du panier
 async function displayTotalPrice(){
-document.querySelector("#totalPrice").innerHTML = await totalPriceCart();
+  document.querySelector("#totalPrice").innerHTML = await totalPriceCart();
 }
 
 
@@ -141,18 +141,161 @@ function totalProducts() {
 
 
 ///////////////////Passer la commande////////////////////////
-//Les inputs des utilisateurs doivent être analysés et validés pour vérifier le format et le type
-//de données avant l’envoi à l’API. Il ne serait par exemple pas recevable d’accepter un
-//prénom contenant des chiffres, ou une adresse e-mail ne contenant pas de symbole “@”. En
-//cas de problème de saisie, un message d’erreur devra être affiché en dessous du champ
-//correspondant.
-
-//Pour les routes POST, l’objet contact envoyé au serveur doit contenir les champs firstName,
-//lastName, address, city et email. Le tableau des produits envoyé au back-end doit être un
-//array de strings product-ID. Les types de ces champs et leur présence doivent être validés
-//avant l’envoi des données au serveur.
 
 
+//Configuration des champs de contact
+let firstName = document.querySelector('#firstName');
+let lastName = document.querySelector('#lastName');
+let address = document.querySelector('#address');
+let city = document.querySelector('#city');
+let email = document.querySelector('#email');
+
+  
+
+//Configuration des RegExp
+let nameRegExp = /^[a-zéêëèîïâäçùA-Z]+$/;
+let addressRegExp = /^[A-Za-z0-9éêëèîïâäçù ,'-]+$/
+let cityRegExp = /^[a-zéèàôâA-ZÉÀ'-]{2,30}$/;
+let emailRegExp = /^[A-Za-z0-9._-]+[@][A-Za-z]+[.][a-z]{2,4}$/
+
+
+//Configuration firstName
+// Eventlistener qui check la config durant l'input
+function checkFirstName() {
+  let testFirstName = nameRegExp.test(firstName.value);
+  if (testFirstName == true) {
+    firstNameErrorMsg.innerText = "";
+    return true;
+  } else {
+    let firstNameErrorMsg = document.getElementById('firstNameErrorMsg')
+    firstNameErrorMsg.innerText = "Merci de saisir un prénom valide (pas de caractères spéciaux) exemple : Jason"
+      return false;
+  }
+}
+firstName.addEventListener("input", function() {
+  checkFirstName(firstName);
+});
+
+
+//Configuration lastName
+function checkLastName() {
+  let testLastName = nameRegExp.test(lastName.value);
+  if (testLastName == true) {
+    lastNameErrorMsg.innerText = "";
+    return true;   
+  } else {
+    let lastNameErrorMsg = document.getElementById('lastNameErrorMsg')
+    lastNameErrorMsg.innerText = "Merci de saisir un nom valide (pas de caractères spéciaux) exemple : Simon"
+    return false;
+  }
+}
+// Eventlistener qui check la config durant l'input
+lastName.addEventListener("input", function () {
+  checkLastName(lastName);
+});
+
+
+
+//Configuration address
+function checkAddress() {
+  let testAddress = addressRegExp.test(address.value);
+  if (testAddress == true) {
+    addressErrorMsg.innerText = "";
+    return true;
+  } else {
+    let addressErrorMsg = document.getElementById('addressErrorMsg')
+    addressErrorMsg.innerText = "Merci de saisir une adresse valide (pas de caractères spéciaux) exemple : 1 Avenue des frelons"
+    return false;
+  }
+}
+// Eventlistener qui check la config durant l'input
+address.addEventListener("input", function () {
+  checkAddress(address);
+});
+
+
+//Configuration city
+function checkCity() {
+  let testCity = cityRegExp.test(city.value);
+  if (testCity == true) {
+    cityErrorMsg.innerText = "";
+    return true;
+  } else {
+    let cityErrorMsg = document.getElementById('cityErrorMsg')
+    cityErrorMsg.innerText = "Merci de saisir une ville valide (pas de caractères spéciaux) exemple : Saint-Louis"
+    return false;
+  }
+}
+// Eventlistener qui check la config durant l'input
+city.addEventListener("input", function () {
+  checkCity(city);
+});
+
+
+//Configuration email
+function checkEmail() {
+  let testEmail = emailRegExp.test(email.value);
+  if (testEmail == true) {
+    emailErrorMsg.innerText = "";
+    return true;
+  } else {
+    let emailErrorMsg = document.getElementById('emailErrorMsg')
+    emailErrorMsg.innerText = "Merci de saisir un email valide (pas de caractères spéciaux) exemple : jason.simon@gmail.fr"
+    return false;
+  }
+}
+// Eventlistener qui check la config durant l'input
+email.addEventListener("input", function () {
+  checkEmail(email);
+});
+
+
+//Envoi du formulaire au clique sur boutton commander si toutes les informations ont été validées
+//boucle for qui récupere les id et les push dans l'array
+function postForm(){
+  const button_order = document.querySelector('#order')
+  button_order.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (checkFirstName(firstName) && checkLastName(lastName) && checkAddress(address) && checkCity(city) && checkEmail(email) ){
+      let productId = JSON.parse(localStorage.getItem('key'));
+      //console.log(productId);
+      const arrayId = [];
+      console.log(arrayId);
+      for (let i in productId) {
+        arrayId.push(productId[i].id)
+      };
+  
+//Création de contactOrder regroupant le formulaire saisie par le client et les id produits
+      const contactOrder = {
+        contact : {
+          firstName : firstName.value,
+          lastName : lastName.value,
+          address : address.value,
+          city : city.value,
+          email : email.value,
+        },
+        products: arrayId, 
+      };
+      console.log(contactOrder);
+//Méthode POST pour envoyer le formulaire
+      let options = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contactOrder)
+    };
+
+    fetch("http://localhost:3000/api/products/order", options)
+        .then(res => res.json())
+//redirection sur la page confirmation        
+        .then(function (data) {
+          document.location.href = 'confirmation.html?id='+ data.orderId;
+        });
+   } else {
+      alert("Veuillez remplir le formulaire de commande pour continuer");
+      e.preventDefault();
+    }
+  })
+}
 
 
 //Fonction asynchrone "main" pour appeler les fonctions
@@ -162,7 +305,8 @@ async function main() {
     displayTotalPrice();
     getCart();
     deleteItem();
-    changeQuantityCart()
+    changeQuantityCart();
+    postForm();
 }
 
 //Appel de la fonction "main" principale
