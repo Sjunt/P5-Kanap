@@ -169,7 +169,7 @@ function checkFirstName() {
   } else {
     let firstNameErrorMsg = document.getElementById('firstNameErrorMsg')
     firstNameErrorMsg.innerText = "Merci de saisir un prénom valide (pas de caractères spéciaux) exemple : Jason"
-      return false;
+    return false;
   }
 }
 firstName.addEventListener("input", function() {
@@ -252,61 +252,56 @@ email.addEventListener("input", function () {
 
 //Envoi du formulaire au clique sur boutton commander si toutes les informations ont été validées
 //boucle for qui récupere les id et les push dans l'array
-function postForm(){
+function postForm() {
   const button_order = document.querySelector('#order')
-  button_order.addEventListener('click', (e) => {
+  button_order.addEventListener("click", function (e) {
     e.preventDefault();
     if (checkFirstName(firstName) && checkLastName(lastName) && checkAddress(address) && checkCity(city) && checkEmail(email) ){
-      let productId = JSON.parse(localStorage.getItem('key'));
+      let productId = JSON.parse(localStorage.getItem("key"));
       //console.log(productId);
       const arrayId = [];
-      console.log(arrayId);
       for (let i in productId) {
-        arrayId.push(productId[i].id)
-      };
-  
+        arrayId.push(productId[i].id);
+      }
+
 //Création de contactOrder regroupant le formulaire saisie par le client et les id produits
       const contactOrder = {
-        contact : {
-          firstName : firstName.value,
-          lastName : lastName.value,
-          address : address.value,
-          city : city.value,
-          email : email.value,
+        contact: {
+          firstName: firstName.value,
+          lastName: lastName.value,
+          address: address.value,
+          city: city.value,
+          email: email.value,
         },
-        products: arrayId, 
+        products: arrayId,
       };
       console.log(contactOrder);
 //Méthode POST pour envoyer le formulaire
       let options = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contactOrder)
-    };
-
-    fetch("http://localhost:3000/api/products/order", options)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactOrder),
+      };
+      fetch('http://localhost:3000/api/products/order', options)      
         .then(res => res.json())
-//redirection sur la page confirmation        
-        .then(function (data) {
-          document.location.href = 'confirmation.html?id='+ data.orderId;
-        });
-   } else {
+        //redirection sur la page confirmation        
+        .then(data => { document.location.href = `./confirmation.html?orderId=${data.orderId}`;})
+    } else {
       alert("Veuillez remplir le formulaire de commande pour continuer");
       e.preventDefault();
     }
   })
 }
 
-
 //Fonction asynchrone "main" pour appeler les fonctions
 async function main() {
-    await checkApi();
-    totalProducts();
-    displayTotalPrice();
-    getCart();
-    deleteItem();
-    changeQuantityCart();
-    postForm();
+  await checkApi();
+  totalProducts();
+  displayTotalPrice();
+  getCart();
+  deleteItem();
+  changeQuantityCart();
+  postForm();
 }
 
 //Appel de la fonction "main" principale
