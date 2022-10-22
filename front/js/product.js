@@ -50,8 +50,8 @@ fetch(`http://localhost:3000/api/products/${id}`)
     };
     
 // Quantité ne doit pas être égal a 0 sinon message d'erreur
-    if (selectQuantity.value == 0) {
-      return alert('Veuillez selectionner une quantité')
+    if (selectQuantity.value <= 0) {
+      return alert('Veuillez selectionner une quantité valide')
     }
     
 // Insertion des donnés dans le localStorage (parse converti les donnés en objet)

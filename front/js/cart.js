@@ -12,7 +12,7 @@ let itemInLocalStorage = JSON.parse(localStorage.getItem('key'));
 // Sinon il retourne les données en parse du localStorage
 function getCart() {
     let itemInLocalStorage = localStorage.getItem('key');
-    if (itemInLocalStorage == null) {
+    if (itemInLocalStorage == null || itemInLocalStorage == 0) {
         document.querySelector("h1").textContent += " est vide";
         document.querySelector("p").textContent = "";
         return [];
@@ -21,7 +21,16 @@ function getCart() {
         return JSON.parse(itemInLocalStorage);
     }
 }
- 
+
+//Fonction noForm pour éviter de passer une commande avec un panier vide
+function noForm(){
+  let form = document.querySelector(".cart__order__form")
+  if (itemInLocalStorage == 0 || itemInLocalStorage == null){
+    form.style.display ="none";
+  }
+}
+noForm();
+
 //Récupération des données de l'API
 //La const products attends d'avoir les informations pour chaque canapés
 //La const product synchronise les données entre l'API et le localStorage
@@ -79,8 +88,12 @@ function changeQuantityCart(){
       itemInLocalStorage[q].quantity = qtyModify;
       localStorage.setItem('key', JSON.stringify(itemInLocalStorage));
 
+      if (qtyModify <= 0){
+        alert("Merci de choisir une quantité valide")
+      } else {
       alert("La quantité d'un article vient d'être modifié dans le panier")
-      location.reload();
+      location.reload(); 
+      }
     });
   }
 }
